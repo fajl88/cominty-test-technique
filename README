@@ -1,0 +1,59 @@
+# Cominty Machine Learning Engineer Technical Assessment
+
+Task description: Imagine a customer possesses various data sources, including tabular data in Excel or CSV formats, as well as diverse information
+within their knowledge base. Your challenge is to design a system that can leverage these resources to answer pertinent user
+questions.
+Example Use Case:
+A user asks, "What were the sales figures for Product X in Q2?" The system should accurately retrieve and process the relevant
+data from the provided spreadsheets and other knowledge sources to deliver the correct response.
+
+## Installation instructions
+
+This project was made for Python 3.13.1 with the following dependencies
+
+- pandas 2.2.3
+- torch 2.6.0
+- transformers 4.48.3
+- python-dotenv 1.0.1
+- anthropic 0.45.2
+- requests 2.32.3
+
+Please add a .env file to the root of the project with the following :
+
+OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+LLAMA_API_KEY=your_llama_api_key
+
+I can only guarantee that the project works with anthropic.
+
+Please put the csv/excel files you want analyzed in the "data" folder. Other file types are not supported.
+
+## Design choices
+
+I started by defining a general pipeline to answer the user's question by creating an abstract class DataAnalyzer. The pipeline works as follows: 
+
+1. Extract the keywords from the user's question
+2. Find the documents relevant to the keywords in the provided data
+3. Retrieve the data relevant to the keywords within those documents
+4. Give an LLM instructions to answer the user's question with the retrieved data
+
+I then implemented this general pipeline with two subclasses of DataAnalyzer. The first implementation with the MvpDataAnlyzer class worked as a proof of concept for the pipeline, and was made with simplicity rather than efficiency in mind.
+As such, the MvpDataAnalyzer only flags exact matches between the user's question and filenames to identify relevant documents for example, making it far from actually being useful.
+The second implementation, through the CompleteDataAnalyzer class (which is actually far from being complete), tokenizes the user's question and the strings in the data provided to judge the importance of keywords (which are actually key tokens) and compare the similarity between the user's question and the provided data by calculating cosine similarities between the tokens' embeddings.
+
+## Demonstration
+
+Please run the main.py file on a terminal. To try out the MvpDataAnalyzer, just change line 10 of the code as commented.
+
+To try out MvpDataAnalyzer, you must include exactly words from filenames for them to be analyzed.
+
+For example, with the provided test data, the following question will return a positive result: 
+>>> You: One of our employees is called Stevens. What's her first name?
+but the following will not: 
+>>> You: I have an employee called Stevens. What's her first name?
+because the filename is employees.csv
+
+To try out CompleteDataAnalyzer, just run main.py without changing line 10. Here's a question you can ask that should work with the provided test data: 
+>>> You: I have an employee called Helen. What's her email?
+
+Be careful though, the code can take several minutes to run for csv files with just a few hundred lines, because I didn't have time to optimize it well.
